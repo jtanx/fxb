@@ -1,0 +1,39 @@
+name: Build
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 512
+          swap-size-mb: 4096
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+      - name: Configure
+        run: |
+          echo "free space"
+          df -kh
+          pwd
+          hg --version
+          python3 --version
+          curl https://hg.mozilla.org/mozilla-central/raw-file/default/python/mozboot/bin/bootstrap.py -O
+          python3 bootstrap.py --no-interactive
+      - name: Build
+        run: |
+          cd mozilla-unified
+          ./mach build
+      #- name: Setup tmate session
+      #  uses: mxschmitt/action-tmate@v3
